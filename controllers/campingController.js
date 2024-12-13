@@ -1,6 +1,6 @@
 
 
-const Camping = require('../models/Camping');
+const Camping = require('../models/camping');
 
 // Create a new camping point
 const createCampingPoint = async (req, res) => {

@@ -35,7 +35,6 @@ exports.register = async (req, res) => {
 // User login
 exports.login = async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -95,7 +94,6 @@ exports.forget = async (req, res) => {
       `
     };
 
-    // Send email
     await transporter.sendMail(mailOptions);
 
     res.status(200).json({ 
@@ -113,7 +111,6 @@ exports.forget = async (req, res) => {
   }
 };
 
-// Verify OTP
 exports.verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
@@ -161,7 +158,6 @@ exports.verifyOTP = async (req, res) => {
   }
 };
 
-// Reset password using the token
 exports.resetPassword = async (req, res) => {
   const { token } = req.params; // Extract token from URL
   const { password } = req.body; // Get new password and confirmation
@@ -203,7 +199,6 @@ exports.getCurrentUser = async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    // Find user by ID and exclude password
     const user = await User.findById(userId)
       .select('-password') 
 
