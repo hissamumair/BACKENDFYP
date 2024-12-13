@@ -22,9 +22,9 @@ const generateOTP = () => {
 exports.register = async (req, res) => {
   const { name, email, contactNo, password, confirmPassword } = req.body;
 
-  if (password !== confirmPassword) {
-    return res.status(400).json({ message: "Passwords do not match." });
-  }
+  // if (password !== confirmPassword) {
+  //   return res.status(400).json({ message: "Passwords do not match." });
+  // }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
