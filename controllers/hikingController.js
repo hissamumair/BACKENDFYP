@@ -1,4 +1,4 @@
-const Hiking = require('../models/Hiking');
+const Hiking = require('../models/hiking');
 
 // Get all hiking trails
 const getAllHikes = async (req, res) => {

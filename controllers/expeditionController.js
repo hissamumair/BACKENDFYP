@@ -1,4 +1,4 @@
-const Expedition = require('../models/Expedition'); // Ensure this path is correct
+const Expedition = require('../models/place'); // Ensure this path is correct
 
 // Function to create an expedition
 const createExpedition = async (req, res) => {
