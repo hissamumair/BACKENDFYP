@@ -20,17 +20,28 @@ const generateOTP = () => {
 
 // Register a new user
 exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, contactNo, password, confirmPassword } = req.body;
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match." });
+  }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword });
+    const newUser = new User({
+      name,
+      email,
+      contactNo,
+      password: hashedPassword,
+      confirmPassword: hashedPassword, // Save hashed confirmPassword for consistency
+    });
     const user = await newUser.save();
     res.status(201).json({ message: "User registered successfully!", user });
   } catch (error) {
     res.status(400).json({ message: "Error registering user", error });
   }
 };
+
 
 // User login
 exports.login = async (req, res) => {
