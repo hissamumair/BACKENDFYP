@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');  // Import cors package
 
 // Import route files
 const userRoutes = require("./routes/userRoutes");
@@ -15,6 +16,7 @@ const bookingRoutes = require('./routes/bookingRoutes'); // Import booking route
 const carBookingRoutes = require('./routes/carBookingRoutes'); // Import car booking routes
 
 const app = express();
+app.use(cors()); // This allows all origins by default
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://hissam123:hissam123@cluster0.yho26.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
@@ -43,3 +45,4 @@ app.use('/api/car-booking', carBookingRoutes); // Add car booking routes
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+

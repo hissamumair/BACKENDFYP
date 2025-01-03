@@ -1,6 +1,11 @@
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto"); // For generating tokens
 const User = require("../models/User");
+const Booking = require('../models/Booking');
+const CarBooking = require('../models/CarBooking');
+const Place = require('../models/place');
+const Review = require('../models/review');
+const mongoose = require('mongoose');
 // import jwt from 'jsonwebtoken';
 const nodemailer = require('nodemailer');
 
@@ -12,6 +17,20 @@ const transporter = nodemailer.createTransport({
     pass: "qgyb elnu ggex uaqb"
   }
 });
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find(); // Fetch all users
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch users', error: error.message });
+  }
+}
+
+
+
+
+
+
 
 // Generate OTP
 const generateOTP = () => {
@@ -246,4 +265,71 @@ exports.getCurrentUser = async (req, res) => {
   }
 };
 
+// Function to get the dashboard data
+exports.getDashboardData = async (req, res) => {
+  try {
+    // 1. Total Users & User Statistics
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ status: 'active' });
 
+    // 2. Total Bookings & Booking Statistics
+    const totalBookings = await Booking.countDocuments();
+    const totalCarBookings = await CarBooking.countDocuments();
+
+    // 3. Total Revenue (Summing up confirmed bookings' deposits)
+    const totalRevenue = await Booking.aggregate([
+      { $match: { status: 'Confirmed' } },
+      { $group: { _id: null, total: { $sum: '$deposit' } } }
+    ]);
+    const revenue = totalRevenue[0] ? totalRevenue[0].total : 0;
+
+    // 4. Total Places & Reviews
+    const totalPlaces = await Place.countDocuments();
+    const totalReviews = await Review.countDocuments();
+
+    // Prepare the dashboard data as requested
+    const dashboardData = [
+      {
+        title: "Total Users",
+        value: totalUsers.toLocaleString(),  // Format the value with commas
+        gradient: "bg-gradient-to-r from-blue-500 to-indigo-600"
+      },
+      {
+        title: "Total Revenue",
+        value: `$${revenue.toLocaleString()}`,  // Format revenue as currency
+        gradient: "bg-gradient-to-r from-green-500 to-teal-500"
+      },
+      {
+        title: "Total Expeditions",
+        value: "320",  // This can be a static value or another dynamic value if needed
+        gradient: "bg-gradient-to-r from-yellow-400 to-orange-500"
+      },
+      {
+        title: "Total Bookings",
+        value: totalBookings.toLocaleString(),
+        gradient: "bg-gradient-to-r from-red-500 to-pink-500"
+      },
+      {
+        title: "Total Car Bookings",
+        value: totalCarBookings.toLocaleString(),
+        gradient: "bg-gradient-to-r from-purple-500 to-pink-600"
+      },
+      {
+        title: "Trip Bookings",
+        value: "1,200",  // This can be another dynamic value (e.g., from bookings related to trips)
+        gradient: "bg-gradient-to-r from-indigo-500 to-purple-600"
+      },
+      {
+        title: "Statistics",
+        value: "80%",  // Placeholder, you can calculate a specific statistic like completion rate
+        gradient: "bg-gradient-to-r from-teal-500 to-cyan-500"
+      }
+    ];
+
+    // Respond with the formatted dashboard data
+    res.status(200).json(dashboardData);
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    res.status(500).json({ message: "Error fetching dashboard data", error });
+  }
+};
