@@ -1,36 +1,37 @@
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto"); // For generating tokens
 const User = require("../models/User");
-const Booking = require('../models/Booking');
-const CarBooking = require('../models/CarBooking');
-const Place = require('../models/place');
-const Review = require('../models/review');
-const mongoose = require('mongoose');
+const Booking = require("../models/Booking");
+const CarBooking = require("../models/CarBooking");
+const Place = require("../models/place");
+const Review = require("../models/review");
+const mongoose = require("mongoose");
 // import jwt from 'jsonwebtoken';
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: "hissamyousafzai@gmail.com",
-    pass: "qgyb elnu ggex uaqb"
-  }
+    pass: "qgyb elnu ggex uaqb",
+  },
 });
+
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find(); // Fetch all users
     res.status(200).json({ success: true, users });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to fetch users', error: error.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to fetch users",
+        error: error.message,
+      });
   }
-}
-
-
-
-
-
-
+};
 
 // Generate OTP
 const generateOTP = () => {
@@ -40,29 +41,75 @@ const generateOTP = () => {
 // Register a new user
 exports.register = async (req, res) => {
   const { name, email, contactNo, password, confirmPassword } = req.body;
-console.log("object",req.body)
+  console.log("object", req.body);
   // if (password !== confirmPassword) {
   //   return res.status(400).json({ message: "Passwords do not match." });
   // }
 
   try {
     const hashedPassword = await bcrypt.hash(password || "123456", 10);
+    // Generate a 4-digit verification code
+    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
       confirmPassword: hashedPassword, // Save hashed confirmPassword for consistency
-      role:"user"
+      role: "user",
+      verificationCode,
+      verificationExpires: new Date(Date.now() + 15 * 60 * 1000), // Code expires in 15 minutes
     });
-    console.log("object",newUser)
+
+    // Send the verification email
+    const mailOptions = {
+      from: "hissamyousafzai@gmail.com",
+      to: email,
+      subject: "Your Verification Code",
+      text: `Your 4-digit verification code is: ${verificationCode}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
     const user = await newUser.save();
+
     res.status(201).json({ message: "User registered successfully!", user });
   } catch (error) {
-    console.log("object",error)
+    console.log("object", error);
     res.status(400).json({ message: "Error registering user", error });
   }
 };
 
+exports.verifyEmail = async (req, res) => {
+  const { email, code } = req.body;
+
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Check if the verification code matches and is not expired
+    if (
+      user.verificationCode === code &&
+      user.verificationExpires > Date.now()
+    ) {
+      // Mark the user as verified and remove the verification code
+      user.isVerified = true;
+      user.verificationCode = undefined;
+      user.verificationExpires = undefined;
+      await user.save();
+
+      return res.status(200).json({ message: 'Email verified successfully!', user });
+    }
+
+    res.status(400).json({ message: 'Invalid or expired verification code.' });
+  } catch (error) {
+    console.log('Error:', error);
+    res.status(500).json({ message: 'Error verifying email', error });
+  }
+};
 
 // User login
 exports.login = async (req, res) => {
@@ -94,24 +141,20 @@ exports.forget = async (req, res) => {
 
     // Generate OTP
     const otp = generateOTP();
-    
+
     // Hash OTP before saving
-    const hashedOTP = crypto
-      .createHash('sha256')
-      .update(otp)
-      .digest('hex');
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
     // Set OTP and expiration in user document
     user.resetPasswordToken = hashedOTP;
     user.resetPasswordExpires = Date.now() + 600000; // 10 minutes
     await user.save();
 
- 
     // Create email template
     const mailOptions = {
       from: process.env.EMAIL,
       to: email,
-      subject: 'Password Reset OTP',
+      subject: "Password Reset OTP",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">Password Reset Request</h2>
@@ -123,22 +166,21 @@ exports.forget = async (req, res) => {
           <p style="color: #666; font-size: 14px;">If you didn't request this password reset, please ignore this email or contact support if you have concerns.</p>
           <p style="color: #666; font-size: 14px;">For security reasons, please don't share this OTP with anyone.</p>
         </div>
-      `
+      `,
     };
 
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "OTP has been sent to your email",
       email: email,
-      expiresIn: "10 minutes"
+      expiresIn: "10 minutes",
     });
-
   } catch (error) {
-    console.error('Password reset error:', error);
-    res.status(500).json({ 
+    console.error("Password reset error:", error);
+    res.status(500).json({
       message: "Error processing password reset request",
-      error: error.message 
+      error: error.message,
     });
   }
 };
@@ -154,7 +196,9 @@ exports.deleteUser = async (req, res) => {
     // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // Delete all related records
@@ -212,50 +256,45 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-
 exports.verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
   try {
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       email,
-      resetPasswordExpires: { $gt: Date.now() }
+      resetPasswordExpires: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).json({ 
-        message: "OTP has expired or user not found" 
+      return res.status(400).json({
+        message: "OTP has expired or user not found",
       });
     }
 
     // Hash received OTP and compare
-    const hashedOTP = crypto
-      .createHash('sha256')
-      .update(otp)
-      .digest('hex');
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
     if (hashedOTP !== user.resetPasswordToken) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
     // OTP is valid - generate temporary token for password reset
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
     // Save new reset token
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 300000; // 5 minutes to reset password
     await user.save();
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "OTP verified successfully",
-      resetToken: resetToken
+      resetToken: resetToken,
     });
-
   } catch (error) {
-    console.error('OTP verification error:', error);
-    res.status(500).json({ 
+    console.error("OTP verification error:", error);
+    res.status(500).json({
       message: "Error verifying OTP",
-      error: error.message 
+      error: error.message,
     });
   }
 };
@@ -301,13 +340,12 @@ exports.getCurrentUser = async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    const user = await User.findById(userId)
-      .select('-password') 
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "User not found" 
+        message: "User not found",
       });
     }
 
@@ -323,16 +361,15 @@ exports.getCurrentUser = async (req, res) => {
         addresses: user.addresses,
         orders: user.orders,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      }
+        updatedAt: user.updatedAt,
+      },
     });
-
   } catch (error) {
-    console.error('Get current user error:', error);
+    console.error("Get current user error:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching user details",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -342,7 +379,7 @@ exports.getDashboardData = async (req, res) => {
   try {
     // 1. Total Users & User Statistics
     const totalUsers = await User.countDocuments();
-    const activeUsers = await User.countDocuments({ status: 'active' });
+    const activeUsers = await User.countDocuments({ status: "active" });
 
     // 2. Total Bookings & Booking Statistics
     const totalBookings = await Booking.countDocuments();
@@ -350,8 +387,8 @@ exports.getDashboardData = async (req, res) => {
 
     // 3. Total Revenue (Summing up confirmed bookings' deposits)
     const totalRevenue = await Booking.aggregate([
-      { $match: { status: 'Confirmed' } },
-      { $group: { _id: null, total: { $sum: '$deposit' } } }
+      { $match: { status: "Confirmed" } },
+      { $group: { _id: null, total: { $sum: "$deposit" } } },
     ]);
     const revenue = totalRevenue[0] ? totalRevenue[0].total : 0;
 
@@ -363,39 +400,39 @@ exports.getDashboardData = async (req, res) => {
     const dashboardData = [
       {
         title: "Total Users",
-        value: totalUsers.toLocaleString(),  // Format the value with commas
-        gradient: "bg-gradient-to-r from-blue-500 to-indigo-600"
+        value: totalUsers.toLocaleString(), // Format the value with commas
+        gradient: "bg-gradient-to-r from-blue-500 to-indigo-600",
       },
       {
         title: "Total Revenue",
-        value: `$${revenue.toLocaleString()}`,  // Format revenue as currency
-        gradient: "bg-gradient-to-r from-green-500 to-teal-500"
+        value: `$${revenue.toLocaleString()}`, // Format revenue as currency
+        gradient: "bg-gradient-to-r from-green-500 to-teal-500",
       },
       {
         title: "Total Expeditions",
-        value: "320",  // This can be a static value or another dynamic value if needed
-        gradient: "bg-gradient-to-r from-yellow-400 to-orange-500"
+        value: "320", // This can be a static value or another dynamic value if needed
+        gradient: "bg-gradient-to-r from-yellow-400 to-orange-500",
       },
       {
         title: "Total Bookings",
         value: totalBookings.toLocaleString(),
-        gradient: "bg-gradient-to-r from-red-500 to-pink-500"
+        gradient: "bg-gradient-to-r from-red-500 to-pink-500",
       },
       {
         title: "Total Car Bookings",
         value: totalCarBookings.toLocaleString(),
-        gradient: "bg-gradient-to-r from-purple-500 to-pink-600"
+        gradient: "bg-gradient-to-r from-purple-500 to-pink-600",
       },
       {
         title: "Trip Bookings",
-        value: "1,200",  // This can be another dynamic value (e.g., from bookings related to trips)
-        gradient: "bg-gradient-to-r from-indigo-500 to-purple-600"
+        value: "1,200", // This can be another dynamic value (e.g., from bookings related to trips)
+        gradient: "bg-gradient-to-r from-indigo-500 to-purple-600",
       },
       {
         title: "Statistics",
-        value: "80%",  // Placeholder, you can calculate a specific statistic like completion rate
-        gradient: "bg-gradient-to-r from-teal-500 to-cyan-500"
-      }
+        value: "80%", // Placeholder, you can calculate a specific statistic like completion rate
+        gradient: "bg-gradient-to-r from-teal-500 to-cyan-500",
+      },
     ];
 
     // Respond with the formatted dashboard data
