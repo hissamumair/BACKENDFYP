@@ -41,6 +41,8 @@ exports.getBookingById = async (req, res) => {
 
 // Create a new booking
 exports.createBooking = async (req, res) => {
+  // console.log("Request Body:", req.body);  // Log the request body
+
   const { startDate, endDate, deposit, status, user, contactNumber, gender, email, fullName } = req.body;
   console.log("object, ",req.body)
   const booking = new Booking(req.body);

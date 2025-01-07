@@ -40,23 +40,25 @@ const generateOTP = () => {
 // Register a new user
 exports.register = async (req, res) => {
   const { name, email, contactNo, password, confirmPassword } = req.body;
-
+console.log("object",req.body)
   // if (password !== confirmPassword) {
   //   return res.status(400).json({ message: "Passwords do not match." });
   // }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password || "123456", 10);
     const newUser = new User({
       name,
       email,
-      contactNo,
       password: hashedPassword,
       confirmPassword: hashedPassword, // Save hashed confirmPassword for consistency
+      role:"user"
     });
+    console.log("object",newUser)
     const user = await newUser.save();
     res.status(201).json({ message: "User registered successfully!", user });
   } catch (error) {
+    console.log("object",error)
     res.status(400).json({ message: "Error registering user", error });
   }
 };
@@ -140,6 +142,76 @@ exports.forget = async (req, res) => {
     });
   }
 };
+
+exports.deleteUser = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ success: false, message: "Invalid user ID" });
+  }
+
+  try {
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Delete all related records
+    await Booking.deleteMany({ userId });
+    await CarBooking.deleteMany({ userId });
+
+    // Remove user record
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({
+      success: true,
+      message: "User and related records deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting user",
+      error: error.message,
+    });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { userId } = req.params; // Extract user ID from request params
+    const updateFields = req.body; // Get fields to update from the request body
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    if (!Object.keys(updateFields).length) {
+      return res.status(400).json({ message: "No fields to update provided" });
+    }
+
+    // Find the user by ID and update the provided fields
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, runValidators: true } // Return the updated document and validate fields
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
 
 exports.verifyOTP = async (req, res) => {
   const { email, otp } = req.body;

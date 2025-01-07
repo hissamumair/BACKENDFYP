@@ -11,7 +11,7 @@ const gadgetRoutes = require('./routes/gadget');
 const hikingRoutes = require('./routes/hicking');
 const safetyEquipmentRoutes = require('./routes/safetyEquipmentRoutes');
 const weatherRoutes = require('./routes/weather');
-const chatRoutes = require('./routes/chatRoutes'); // Import chat routes
+const chatRoutes = require('./routes/messageRoutes'); // Import chat routes
 const bookingRoutes = require('./routes/bookingRoutes'); // Import booking routes
 const carBookingRoutes = require('./routes/carBookingRoutes'); // Import car booking routes
 

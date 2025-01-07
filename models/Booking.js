@@ -5,12 +5,13 @@ const bookingSchema = new mongoose.Schema({
   startDate: { type: Date, },
   endDate: { type: Date,  },
   deposit: { type: Number,  },
-  status: { type: String, enum: ['Available', 'Sold Out'], },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Reference to the user who booked
+  status: { type: String, enum: ['Available', 'Sold Out', 'Pending', 'Completed', 'Canceled'] },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   contactNumber: { type: String, required: true },
   gender: { type: String, enum: ['Male', 'Female', 'Other'], },
   email: { type: String, },
   fullName: { type: String, required: true },
+  carName: { type: String, required: true },
 });
 
 module.exports = mongoose.model('Booking', bookingSchema);
