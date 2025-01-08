@@ -81,18 +81,18 @@ exports.register = async (req, res) => {
 
 exports.verifyEmail = async (req, res) => {
   const { email, code } = req.body;
-
+console.log("asdf",email,typeof code)
   try {
     // Find the user by email
     const user = await User.findOne({ email });
-
+console.log("object",user)
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
 
     // Check if the verification code matches and is not expired
     if (
-      user.verificationCode === code &&
+      user.verificationCode == code &&
       user.verificationExpires > Date.now()
     ) {
       // Mark the user as verified and remove the verification code
