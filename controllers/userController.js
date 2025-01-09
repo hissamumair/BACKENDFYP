@@ -152,7 +152,7 @@ exports.forget = async (req, res) => {
 
     // Create email template
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: "hissamyousafzai@gmail.com",
       to: email,
       subject: "Password Reset OTP",
       html: `
