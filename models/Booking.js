@@ -12,6 +12,8 @@ const bookingSchema = new mongoose.Schema({
   email: { type: String, },
   fullName: { type: String, required: true },
   carName: { type: String, required: true },
+  paymentScreenshot: { type: String } // Add this line to store the payment screenshot URL
+
 });
 
 module.exports = mongoose.model('Booking', bookingSchema);

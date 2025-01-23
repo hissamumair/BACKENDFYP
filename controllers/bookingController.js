@@ -57,12 +57,14 @@ exports.createBooking = async (req, res) => {
 
 // Update a booking by ID
 exports.updateBooking = async (req, res) => {
-  const { startDate, endDate, deposit, status, user, contactNumber, gender, email, fullName } = req.body;
+  const { startDate, endDate, deposit, status, user, contactNumber, gender, email, fullName,paymentScreenshot
+  } = req.body;
 
   try {
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
-      { startDate, endDate, deposit, status, user, contactNumber, gender, email, fullName },
+      { startDate, endDate, deposit, status, user, contactNumber, gender, email, fullName,paymentScreenshot
+      },
       { new: true } // Return the updated document
     );
     if (!booking) return res.status(404).json({ message: "Booking not found" });
