@@ -403,16 +403,16 @@ exports.getDashboardData = async (req, res) => {
         value: totalUsers.toLocaleString(), // Format the value with commas
         gradient: "bg-gradient-to-r from-blue-500 to-indigo-600",
       },
-      {
-        title: "Total Revenue",
-        value: `$${revenue.toLocaleString()}`, // Format revenue as currency
-        gradient: "bg-gradient-to-r from-green-500 to-teal-500",
-      },
-      {
-        title: "Total Expeditions",
-        value: "320", // This can be a static value or another dynamic value if needed
-        gradient: "bg-gradient-to-r from-yellow-400 to-orange-500",
-      },
+      // {
+      //   title: "Total Revenue",
+      //   value: `$${revenue.toLocaleString()}`, // Format revenue as currency
+      //   gradient: "bg-gradient-to-r from-green-500 to-teal-500",
+      // },
+      // {
+      //   title: "Total Expeditions",
+      //   value: "320", // This can be a static value or another dynamic value if needed
+      //   gradient: "bg-gradient-to-r from-yellow-400 to-orange-500",
+      // },
       {
         title: "Total Bookings",
         value: totalBookings.toLocaleString(),
@@ -423,16 +423,16 @@ exports.getDashboardData = async (req, res) => {
         value: totalCarBookings.toLocaleString(),
         gradient: "bg-gradient-to-r from-purple-500 to-pink-600",
       },
-      {
-        title: "Trip Bookings",
-        value: "1,200", // This can be another dynamic value (e.g., from bookings related to trips)
-        gradient: "bg-gradient-to-r from-indigo-500 to-purple-600",
-      },
-      {
-        title: "Statistics",
-        value: "80%", // Placeholder, you can calculate a specific statistic like completion rate
-        gradient: "bg-gradient-to-r from-teal-500 to-cyan-500",
-      },
+      // {
+      //   title: "Trip Bookings",
+      //   value: "1,200", // This can be another dynamic value (e.g., from bookings related to trips)
+      //   gradient: "bg-gradient-to-r from-indigo-500 to-purple-600",
+      // },
+      // {
+      //   title: "Statistics",
+      //   value: "80%", // Placeholder, you can calculate a specific statistic like completion rate
+      //   gradient: "bg-gradient-to-r from-teal-500 to-cyan-500",
+      // },
     ];
 
     // Respond with the formatted dashboard data

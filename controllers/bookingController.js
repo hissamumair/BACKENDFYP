@@ -1,5 +1,17 @@
 const Booking = require('../models/Booking');
 
+const nodemailer = require("nodemailer");
+
+// Configure nodemailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "hissamyousafzai@gmail.com",
+    pass: "qgyb elnu ggex uaqb",
+  },
+});
+
+
 // Get all bookings (no filter)
 exports.getBookings = async (req, res) => {
   try {
@@ -57,17 +69,81 @@ exports.createBooking = async (req, res) => {
 
 // Update a booking by ID
 exports.updateBooking = async (req, res) => {
-  const { startDate, endDate, deposit, status, user, contactNumber, gender, email, fullName,paymentScreenshot
+  const { 
+    startDate, 
+    endDate, 
+    deposit, 
+    status, 
+    user, 
+    contactNumber, 
+    gender, 
+    email, 
+    fullName,
+    paymentScreenshot, 
+    carName
   } = req.body;
 
   try {
+console.log("object",req.body)
+    // Update booking
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
-      { startDate, endDate, deposit, status, user, contactNumber, gender, email, fullName,paymentScreenshot
+      { 
+        startDate, 
+        endDate, 
+        deposit, 
+        status, 
+        user, 
+        contactNumber, 
+        gender, 
+        email, 
+        fullName,
+        paymentScreenshot, 
+        carName,
       },
-      { new: true } // Return the updated document
+      { new: true }
     );
+
+    // Send confirmation email if booking is completed
+    if (booking && status === "Completed") {
+      const mailOptions = {
+        from: "hissamyousafzai@gmail.com",
+        to: email,
+        subject: "Exciting News! Your Booking Has Been Approved ✅",
+        html: `
+          <p>Dear ${fullName},</p>
+          <p>We are pleased to inform you that your booking for the ${carName} has been successfully approved!</p>
+          
+          <h3>Booking Details:</h3>
+          <ul>
+            
+            <li>Booking Status: Completed</li>
+          </ul>
+
+          <h3>Next Steps:</h3>
+          <ol>
+            <li>Review the booking confirmation details above</li>
+            <li>Prepare for your upcoming tour</li>
+            <li>Contact our customer service if you have any questions</li>
+          </ol>
+
+          <p>Thank you for choosing our service. We look forward to providing you with an exceptional rental experience.</p>
+
+          <p>Best regards,<br>
+          MH Expedition Team</p>
+        `
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        // Optionally, you might want to handle email sending failures
+      }
+    }
+
     if (!booking) return res.status(404).json({ message: "Booking not found" });
+
     res.status(200).json(booking);
   } catch (error) {
     res.status(400).json({ message: error.message });
