@@ -7,7 +7,7 @@ const bookingSchema = new mongoose.Schema({
   deposit: { type: Number,  },
   status: { type: String, enum: ['Available', 'Sold Out', 'Pending', 'Completed', 'Canceled'] },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  contactNumber: { type: String, required: true },
+  contactNumber: { type: String },
   gender: { type: String, enum: ['Male', 'Female', 'Other'], },
   email: { type: String, },
   fullName: { type: String, required: true },
