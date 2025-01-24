@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');  // Import cors package
 
+
+
 // Import route files
 const userRoutes = require("./routes/userRoutes");
 const placeRoutes = require("./routes/place");
@@ -28,6 +30,10 @@ mongoose.connect('mongodb+srv://hissam123:hissam123@cluster0.yho26.mongodb.net/?
 
 // Middleware
 app.use(express.json()); // For parsing application/json
+
+app.get("/", (req: Request, res: Response) => {
+  res.status(200).send("Hello World from lanza jobs backend");
+});
 
 // Routes
 app.use("/api/user", userRoutes); 
