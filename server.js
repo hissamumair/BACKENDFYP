@@ -31,8 +31,8 @@ mongoose.connect('mongodb+srv://hissam123:hissam123@cluster0.yho26.mongodb.net/?
 // Middleware
 app.use(express.json()); // For parsing application/json
 
-app.get("/", (req: Request, res: Response) => {
-  res.status(200).send("Hello World from lanza jobs backend");
+app.get("/", (req, res) => {
+  res.status(200).send("Hello World from MH Expedition System");
 });
 
 // Routes
