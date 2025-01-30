@@ -11,7 +11,7 @@ const bookingSchema = new mongoose.Schema({
   gender: { type: String, enum: ['Male', 'Female', 'Other'], },
   email: { type: String, },
   fullName: { type: String, required: true },
-  carName: { type: String, required: true },
+  carName: { type: String },
   paymentScreenshot: { type: String } // Add this line to store the payment screenshot URL
 
 });

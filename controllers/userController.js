@@ -65,7 +65,7 @@ exports.register = async (req, res) => {
       from: "hissamyousafzai@gmail.com",
       to: email,
       subject: "Your Verification Code",
-      text: `Your 4-digit verification code is: ${verificationCode}`,
+      text: `Your 4-digit verification code is: ${verificationCode}. If your account is created by Admin then your default password is 123456. Please login to your mobile and change your password`,
     };
 
     await transporter.sendMail(mailOptions);
